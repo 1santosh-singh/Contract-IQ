@@ -1,0 +1,10 @@
+{
+  "/page": "app/page.js",
+  "/summarization/page": "app/summarization/page.js",
+  "/api/summarize/route": "app/api/summarize/route.js",
+  "/api/risk-analysis/route": "app/api/risk-analysis/route.js",
+  "/query/page": "app/query/page.js",
+  "/api/query/route": "app/api/query/route.js",
+  "/risk/page": "app/risk/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js"
+}
