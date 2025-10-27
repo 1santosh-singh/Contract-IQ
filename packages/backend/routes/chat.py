@@ -41,15 +41,14 @@ async def chat_endpoint(
         # Generate response using AI service
         response_content = await ai_service.chat_completion(
             messages=api_messages,
-            model="openai/gpt-oss-20b:free",
+            model="deepseek/deepseek-chat-v3-0324:free",
             max_tokens=500,
             temperature=0.7
         )
         
         return ChatResponse(
             success=True,
-            response=response_content,
-            model_used="openai/gpt-oss-20b:free"
+            message=response_content
         )
         
     except AIServiceError as e:
@@ -58,8 +57,7 @@ async def chat_endpoint(
         
         return ChatResponse(
             success=True,
-            response=fallback_response,
-            model_used="fallback"
+            message=fallback_response
         )
     except Exception as e:
         print(f"[ERROR] Chat endpoint error: {e}")
