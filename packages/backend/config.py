@@ -42,7 +42,7 @@ class Settings(BaseSettings):
         return bool(v)
     
     # CORS Settings
-    cors_origins: list = ["http://localhost:3000", "http://127.0.0.1:3000"]
+    cors_origins: Optional[list] = ["http://localhost:3000", "http://127.0.0.1:3000"]
     
     # Model Settings
     embedding_model_name: str = "nlpaueb/legal-bert-base-uncased"
@@ -66,6 +66,8 @@ class Settings(BaseSettings):
     
     @validator('cors_origins', pre=True)
     def parse_cors_origins(cls, v):
+        if v is None:
+            return ["http://localhost:3000", "http://127.0.0.1:3000"]
         if isinstance(v, str):
             return [origin.strip() for origin in v.split(',')]
         return v
