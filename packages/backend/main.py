@@ -1,6 +1,12 @@
 """
 Contract IQ Backend - Refactored Main Application
 """
+import sys
+import os
+
+# Add current directory to Python path for imports
+sys.path.insert(0, os.path.dirname(__file__))
+
 import asyncio
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
