@@ -127,7 +127,7 @@ export function MainLayout({ children, className, openChat, onCloseChat }: MainL
 
       const data = await response.json();
       console.log('Chat response data:', data);
-      let botMessage = data.response || 'Sorry, I could not generate a response.';
+      let botMessage = data.message || data.response || 'Sorry, I could not generate a response.';
       // Remove leading/trailing brackets if present
       botMessage = botMessage.replace(/^\[|\]$/g, '');
       console.log('Bot message:', botMessage);
