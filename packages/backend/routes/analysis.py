@@ -120,9 +120,11 @@ async def risk_analysis_endpoint(
         Risk analysis
     """
     try:
+        print(f"[INFO] Risk analysis requested for document_id: {request.document_id}")
         supabase_auth = get_authenticated_supabase(token)
         
         # Fetch document chunks
+        print("[INFO] Fetching document chunks...")
         chunks = await supabase_service.get_document_chunks(
             request.document_id, supabase_auth
         )
@@ -130,14 +132,20 @@ async def risk_analysis_endpoint(
         if not chunks:
             raise HTTPException(status_code=404, detail="No content found for document")
         
+        print(f"[INFO] Found {len(chunks)} chunks")
+        
         # Combine chunks into context
         context = "\n".join([chunk["chunk_text"] for chunk in chunks])
         
         if not context.strip():
             raise HTTPException(status_code=400, detail="Document has no readable content")
         
+        print(f"[INFO] Calling AI service for risk analysis (context length: {len(context)} chars)")
+        
         # Generate risk analysis using AI service
         analysis = await ai_service.generate_risk_analysis(context)
+        
+        print(f"[INFO] AI service returned analysis (length: {len(analysis)} chars)")
         
         # Insert analysis into database
         analysis_data = await supabase_service.insert_risk_analysis(
@@ -151,6 +159,7 @@ async def risk_analysis_endpoint(
         )
         
     except AIServiceError as e:
+        print(f"[WARNING] AI service error, using fallback: {str(e)}")
         # Return fallback analysis for AI service errors
         fallback_analysis = """
         <div style="text-align: center; margin-bottom: 15px;"><span style="background-color: red; color: white; padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 18px; display: inline-block; text-align: center;">High Risks</span></div>
@@ -257,7 +266,7 @@ async def query_endpoint(
                     success=True,
                     answer=answer,
                     source="rag",
-                    model_used="openai/gpt-oss-20b:free"
+                    model_used="deepseek/deepseek-chat-v3-0324:free"
                 )
                 
             except Exception as e:
@@ -282,7 +291,7 @@ async def query_endpoint(
                     success=True,
                     answer=answer,
                     source="api",
-                    model_used="openai/gpt-oss-20b:free"
+                    model_used="deepseek/deepseek-chat-v3-0324:free"
                 )
         else:
             # Use direct AI without RAG
@@ -306,7 +315,7 @@ async def query_endpoint(
                 success=True,
                 answer=answer,
                 source="api",
-                model_used="openai/gpt-oss-20b:free"
+                model_used="deepseek/deepseek-chat-v3-0324:free"
             )
             
     except AIServiceError as e:
