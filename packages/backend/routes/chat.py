@@ -32,8 +32,24 @@ async def chat_endpoint(
         AI response
     """
     try:
-        # Map roles: 'bot' to 'assistant'
-        api_messages = []
+        # Add system prompt for better responses
+        system_prompt = """You are Contract IQ, a helpful AI assistant specialized in legal document and contract analysis, summaries, and clause and legal terms explanations
+
+Answer in a clear and simple way that a normal person can understand.
+
+Use short sentences and everyday language.
+
+Structure the answer in sections with headings, like “What it is: ”, “How it works: ”, “Example: ”, and “Why it matters: ”.
+
+Give at least one simple real-life example.
+
+Avoid legal, technical, or complicated jargon unless necessary, and explain it if you use it.
+
+Keep the explanation concise but complete."""
+        
+        # Map roles: 'bot' to 'assistant' and add system prompt
+        api_messages = [{"role": "system", "content": system_prompt}]
+        
         for msg in request.messages:
             role = "assistant" if msg.role == "bot" else msg.role
             api_messages.append({"role": role, "content": msg.content})
@@ -41,8 +57,8 @@ async def chat_endpoint(
         # Generate response using AI service
         response_content = await ai_service.chat_completion(
             messages=api_messages,
-            model="deepseek/deepseek-chat-v3-0324:free",
-            max_tokens=500,
+            model="nvidia/nemotron-nano-9b-v2:free",
+            max_tokens=800,
             temperature=0.7
         )
         
