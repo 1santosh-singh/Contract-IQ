@@ -14,22 +14,35 @@ class AIService:
     
     def __init__(self):
         self.openai_client = None
-        self._initialize_client()
+        self.fallback_client = None
+        self._initialize_clients()
     
-    def _initialize_client(self):
-        """Initialize OpenAI client."""
+    def _initialize_clients(self):
+        """Initialize OpenAI clients with primary and fallback keys."""
+        # Primary client
         if settings.openrouter_api_key:
             self.openai_client = AsyncOpenAI(
                 api_key=settings.openrouter_api_key,
                 base_url="https://openrouter.ai/api/v1",
             )
+            print("[INFO] OpenRouter primary API key loaded")
         else:
-            print("[WARNING] OpenRouter API key not configured")
+            print("[WARNING] OpenRouter primary API key not configured")
+        
+        # Fallback client
+        if settings.openrouter_api_key_fallback:
+            self.fallback_client = AsyncOpenAI(
+                api_key=settings.openrouter_api_key_fallback,
+                base_url="https://openrouter.ai/api/v1",
+            )
+            print("[INFO] OpenRouter fallback API key loaded")
+        else:
+            print("[INFO] OpenRouter fallback API key not configured")
     
     async def chat_completion(
         self, 
         messages: List[Dict[str, str]], 
-        model: str = "deepseek/deepseek-chat-v3-0324:free",
+        model: str = "nvidia/nemotron-nano-9b-v2:free",
         max_tokens: int = 500,
         temperature: float = 0.7
     ) -> str:
@@ -48,12 +61,18 @@ class AIService:
         Raises:
             AIServiceError: If completion fails
         """
-        if not self.openai_client:
-            raise AIServiceError("OpenAI client not initialized")
+        # Try primary client first
+        client = self.openai_client
+        if not client:
+            if self.fallback_client:
+                print("[AI Service] Primary client not available, using fallback")
+                client = self.fallback_client
+            else:
+                raise AIServiceError("OpenAI client not initialized")
         
         try:
             print(f"[AI Service] Calling OpenRouter with model: {model}, max_tokens: {max_tokens}")
-            completion = await self.openai_client.chat.completions.create(
+            completion = await client.chat.completions.create(
                 model=model,
                 messages=messages,
                 max_tokens=max_tokens,
@@ -85,6 +104,31 @@ class AIService:
             return response_content
             
         except (AuthenticationError, RateLimitError) as e:
+            # Try fallback client if primary failed
+            if self.fallback_client and client != self.fallback_client:
+                print(f"[AI Service] Primary key failed: {str(e)}, trying fallback key...")
+                try:
+                    completion = await self.fallback_client.chat.completions.create(
+                        model=model,
+                        messages=messages,
+                        max_tokens=max_tokens,
+                        temperature=temperature,
+                    )
+                    
+                    if completion.choices and len(completion.choices) > 0:
+                        response_content = completion.choices[0].message.content
+                        if not response_content and hasattr(completion.choices[0].message, 'reasoning'):
+                            response_content = completion.choices[0].message.reasoning
+                        
+                        if response_content:
+                            print("[AI Service] Fallback key succeeded")
+                            return response_content
+                    
+                    raise AIServiceError("Empty response from fallback AI model")
+                except Exception as fallback_error:
+                    print(f"[AI Service] Fallback key also failed: {str(fallback_error)}")
+                    return self._get_fallback_response("chat", str(e))
+            
             # Return fallback response for auth/rate limit errors
             return self._get_fallback_response("chat", str(e))
         except Exception as e:
@@ -117,7 +161,7 @@ class AIService:
             
             return await self.chat_completion(
                 messages=messages,
-                model="deepseek/deepseek-chat-v3-0324:free",
+                model="nvidia/nemotron-nano-9b-v2:free",
                 max_tokens=1000,
                 temperature=0.1
             )
@@ -171,7 +215,7 @@ For each section:
             print("[AI Service] Calling OpenRouter API...")
             result = await self.chat_completion(
                 messages=messages,
-                model="deepseek/deepseek-chat-v3-0324:free",
+                model="nvidia/nemotron-nano-9b-v2:free",
                 max_tokens=2000,
                 temperature=0.1
             )
@@ -218,7 +262,7 @@ For each section:
             
             return await self.chat_completion(
                 messages=messages,
-                model="deepseek/deepseek-chat-v3-0324:free",
+                model="nvidia/nemotron-nano-9b-v2:free",
                 max_tokens=800,
                 temperature=0.1
             )
