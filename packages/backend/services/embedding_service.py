@@ -51,7 +51,8 @@ class EmbeddingService:
             print(f"[DEBUG] LegalBERT model loaded successfully on device: {device}")
             return True
         except Exception as e:
-            print(f"[ERROR] Failed to load LegalBERT model: {e}")
+            print(f"[WARNING] Failed to load LegalBERT model: {e}")
+            print(f"[INFO] Will use API fallback for embeddings")
             return False
     
     async def generate_embeddings(self, texts: List[str]) -> List[List[float]]:
