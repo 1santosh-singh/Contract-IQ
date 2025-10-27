@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     
     # API Keys
     openrouter_api_key: Optional[str] = None
+    openrouter_api_key_fallback: Optional[str] = None
     huggingface_api_key: Optional[str] = None
     
     # Application Settings
