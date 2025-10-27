@@ -7,7 +7,7 @@ import { AnimatedCounter } from '@/components/ui/AnimatedCounter'
 
 interface StatCardProps {
   icon: React.ReactNode
-  value: string
+  value: React.ReactNode
   label: string
   description: string
 }

@@ -8,7 +8,15 @@ from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
 
 # Load environment variables
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '..', '.env.local'))
+# Try .env.local first (for local dev), then .env (for Docker/production)
+env_local_path = os.path.join(os.path.dirname(__file__), '..', '..', '.env.local')
+env_path = os.path.join(os.path.dirname(__file__), '..', '..', '.env')
+if os.path.exists(env_local_path):
+    load_dotenv(dotenv_path=env_local_path)
+elif os.path.exists(env_path):
+    load_dotenv(dotenv_path=env_path)
+else:
+    load_dotenv()  # Fallback to default .env location
 
 class Settings(BaseSettings):
     """Application settings with validation."""
@@ -63,7 +71,7 @@ class Settings(BaseSettings):
         return v
     
     class Config:
-        env_file = ".env.local"
+        env_file = [".env.local", ".env"]
         case_sensitive = False
 
 # Global settings instance

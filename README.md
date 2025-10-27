@@ -132,15 +132,39 @@ contract-iq/
 
 ## 🚀 Deployment
 
-### Frontend (Vercel)
+### Docker Deployment (Recommended)
+
+For containerized deployment with Docker and Docker Compose:
+
+📖 **Quick Start:** See [DOCKER_QUICK_START.md](DOCKER_QUICK_START.md)  
+📖 **Full Guide:** See [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md)  
+📖 **Environment Variables:** See [ENV_EXAMPLES.md](ENV_EXAMPLES.md)
+
+**Quick commands:**
+```bash
+# Build and run locally
+docker-compose up --build
+
+# Backend: http://localhost:8000
+# Frontend: http://localhost:3000
+```
+
+### Cloud Deployment
+
+#### Frontend (Vercel)
 1. Connect your GitHub repository to Vercel
 2. Set environment variables in Vercel dashboard
 3. Deploy automatically on push
 
-### Backend (Railway/Render)
+#### Backend (Render)
 1. Connect your repository
 2. Set environment variables
 3. Deploy with Python runtime
+
+#### Full Stack (EC2)
+1. Follow the Docker deployment guide
+2. Set up EC2 instance with Docker
+3. Deploy using Docker Compose
 
 ## 🤝 Contributing
 

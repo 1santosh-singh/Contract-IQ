@@ -3,7 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function POST(request: NextRequest) {
   const authHeader = request.headers.get('Authorization');
 
-  const response = await fetch('http://localhost:8000/api/clear-documents', {
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+  const response = await fetch(`${backendUrl}/api/clear-documents`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

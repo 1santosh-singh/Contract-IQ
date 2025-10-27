@@ -11,7 +11,8 @@ export async function POST(request: NextRequest) {
     
     while (retries > 0) {
       try {
-        response = await fetch('http://localhost:8000/api/upload', {
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+        response = await fetch(`${backendUrl}/api/upload`, {
           method: 'POST',
           headers: {
             'Authorization': authHeader || '',
@@ -32,6 +33,14 @@ export async function POST(request: NextRequest) {
         // Wait before retry
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
+    }
+
+    // TypeScript guard: response is guaranteed to be defined here (early returns handled in retry loop)
+    if (!response) {
+      return NextResponse.json(
+        { detail: 'Backend connection failed' }, 
+        { status: 503 }
+      );
     }
 
     if (!response.ok) {
