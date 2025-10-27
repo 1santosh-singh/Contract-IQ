@@ -29,7 +29,7 @@ class AIService:
     async def chat_completion(
         self, 
         messages: List[Dict[str, str]], 
-        model: str = "openai/gpt-oss-20b:free",
+        model: str = "deepseek/deepseek-chat-v3-0324:free",
         max_tokens: int = 500,
         temperature: float = 0.7
     ) -> str:
@@ -52,6 +52,7 @@ class AIService:
             raise AIServiceError("OpenAI client not initialized")
         
         try:
+            print(f"[AI Service] Calling OpenRouter with model: {model}, max_tokens: {max_tokens}")
             completion = await self.openai_client.chat.completions.create(
                 model=model,
                 messages=messages,
@@ -59,9 +60,27 @@ class AIService:
                 temperature=temperature,
             )
             
-            response_content = completion.choices[0].message.content
-            if not response_content:
-                raise AIServiceError("Empty response from AI model")
+            print(f"[AI Service] OpenRouter response received: {completion.choices if completion.choices else 'No choices'}")
+            print(f"[AI Service] Number of choices: {len(completion.choices) if completion.choices else 0}")
+            
+            if completion.choices and len(completion.choices) > 0:
+                # Check for content first
+                response_content = completion.choices[0].message.content
+                
+                # If content is empty but there's reasoning, use that
+                if not response_content and hasattr(completion.choices[0].message, 'reasoning'):
+                    print("[AI Service] Content empty, checking reasoning field...")
+                    if completion.choices[0].message.reasoning:
+                        print("[AI Service] Using reasoning field as content")
+                        response_content = completion.choices[0].message.reasoning
+                
+                print(f"[AI Service] Response content type: {type(response_content)}, Length: {len(response_content) if response_content else 0}")
+                if not response_content:
+                    print("[AI Service] WARNING: Empty content in response")
+                    raise AIServiceError("Empty response from AI model")
+            else:
+                print("[AI Service] ERROR: No choices in completion")
+                raise AIServiceError("No choices in completion response")
             
             return response_content
             
@@ -98,7 +117,7 @@ class AIService:
             
             return await self.chat_completion(
                 messages=messages,
-                model="openai/gpt-oss-20b:free",
+                model="deepseek/deepseek-chat-v3-0324:free",
                 max_tokens=1000,
                 temperature=0.1
             )
@@ -122,38 +141,68 @@ class AIService:
             AIServiceError: If analysis fails
         """
         try:
+            print("[AI Service] Generating risk analysis...")
+            print(f"[AI Service] API Key loaded: {bool(settings.openrouter_api_key)}")
+            print(f"[AI Service] OpenAI client initialized: {bool(self.openai_client)}")
+            
             system_prompt = """Analyze the legal contract for potential risks. Categorize each risk as high, medium, or low severity.
 
-Output the entire analysis in HTML format only. Structure with three sections: High Risks (red theme), Medium Risks (yellow theme), Low Risks (green theme).
+Output the analysis in HTML format with styled sections and bullet points.
 
-For each section:
-1. Use a centered pill-style heading: <div style="text-align: center; margin-bottom: 15px;"><span style="background-color: red; color: white; padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 18px; display: inline-block; text-align: center;">High Risks</span></div> (use orange for medium, green for low).
+Use this structure:
 
-2. Then a container <div style="background-color: rgba(255,0,0,0.05); padding: 15px; border-radius: 8px; margin-bottom: 25px; border-left: 4px solid red; text-align: left;"> (adjust colors for each section).
+1. For High Risks:
+<div style="background-color: #fee2e2; padding: 15px; border-left: 4px solid #dc2626; border-radius: 8px; margin-bottom: 20px;">
+<h3 style="color: #dc2626; margin-top: 0; margin-bottom: 10px;">High Risks</h3>
+<ul style="margin: 0; padding-left: 20px; list-style-type: disc;">
+<li style="margin-bottom: 8px;">Risk description with <span style="background-color: #dc2626; color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold;">risky term</span></li>
+<li style="margin-bottom: 8px;">Another risk description with <span style="background-color: #dc2626; color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold;">another risky term</span></li>
+</ul>
+</div>
 
-3. Inside the container, use <ul style="margin: 0; padding-left: 20px; list-style-type: disc;"> for the list of risks.
+2. For Medium Risks:
+<div style="background-color: #fed7aa; padding: 15px; border-left: 4px solid #ea580c; border-radius: 8px; margin-bottom: 20px;">
+<h3 style="color: #ea580c; margin-top: 0; margin-bottom: 10px;">Medium Risks</h3>
+<ul style="margin: 0; padding-left: 20px; list-style-type: disc;">
+<li style="margin-bottom: 8px;">Risk description with <span style="background-color: #ea580c; color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold;">risky term</span></li>
+<li style="margin-bottom: 8px;">Another risk description with <span style="background-color: #ea580c; color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold;">another risky term</span></li>
+</ul>
+</div>
 
-4. For each risk <li>, identify the specific risky clause or term and highlight ONLY that part using <span style="background-color: red; color: white; padding: 2px 4px; border-radius: 3px; font-weight: bold;">[RISKY CLAUSE]</span> (use red for high, orange for medium, green for low).
+3. For Low Risks:
+<div style="background-color: #dcfce7; padding: 15px; border-left: 4px solid #16a34a; border-radius: 8px; margin-bottom: 20px;">
+<h3 style="color: #16a34a; margin-top: 0; margin-bottom: 10px;">Low Risks</h3>
+<ul style="margin: 0; padding-left: 20px; list-style-type: disc;">
+<li style="margin-bottom: 8px;">Risk description with <span style="background-color: #16a34a; color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold;">risky term</span></li>
+<li style="margin-bottom: 8px;">Another risk description with <span style="background-color: #16a34a; color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold;">another risky term</span></li>
+</ul>
+</div>
 
-5. Add <div style="height: 20px;"></div> between sections for gap.
-
-6. Do not include any other sections or non-HTML content. Make sure headings are centered and containers have proper styling."""
+IMPORTANT: 
+- Always use bullet points (ul/li) with list-style-type: disc
+- Include multiple bullet points for each risk category
+- Keep the analysis concise and professional."""
 
             messages = [
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"Contract to analyze:\n\n{context[:3000]}"}  # Limit context
+                {"role": "user", "content": f"Analyze the following contract for risks:\n\n{context}"}
             ]
             
-            return await self.chat_completion(
+            print("[AI Service] Calling OpenRouter API...")
+            result = await self.chat_completion(
                 messages=messages,
-                model="openai/gpt-oss-20b:free",
-                max_tokens=1000,
+                model="deepseek/deepseek-chat-v3-0324:free",
+                max_tokens=2000,
                 temperature=0.1
             )
+            print(f"[AI Service] Risk analysis completed successfully ({len(result)} chars)")
+            return result
             
-        except AIServiceError:
+        except AIServiceError as e:
+            print(f"[AI Service] Error during risk analysis: {str(e)}")
             raise
         except Exception as e:
+            print(f"[AI Service] Unexpected error during risk analysis: {str(e)}")
             raise AIServiceError(f"Risk analysis generation failed: {str(e)}")
     
     async def generate_document_query_response(
@@ -189,7 +238,7 @@ For each section:
             
             return await self.chat_completion(
                 messages=messages,
-                model="openai/gpt-oss-20b:free",
+                model="deepseek/deepseek-chat-v3-0324:free",
                 max_tokens=800,
                 temperature=0.1
             )
