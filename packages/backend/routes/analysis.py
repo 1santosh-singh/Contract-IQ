@@ -266,7 +266,7 @@ async def query_endpoint(
                     success=True,
                     answer=answer,
                     source="rag",
-                    model_used="deepseek/deepseek-chat-v3-0324:free"
+                    model_used="nvidia/nemotron-nano-9b-v2:free"
                 )
                 
             except Exception as e:
@@ -291,7 +291,7 @@ async def query_endpoint(
                     success=True,
                     answer=answer,
                     source="api",
-                    model_used="deepseek/deepseek-chat-v3-0324:free"
+                    model_used="nvidia/nemotron-nano-9b-v2:free"
                 )
         else:
             # Use direct AI without RAG
@@ -315,7 +315,7 @@ async def query_endpoint(
                 success=True,
                 answer=answer,
                 source="api",
-                model_used="deepseek/deepseek-chat-v3-0324:free"
+                model_used="nvidia/nemotron-nano-9b-v2:free"
             )
             
     except AIServiceError as e:
