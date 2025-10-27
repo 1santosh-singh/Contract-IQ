@@ -147,41 +147,21 @@ class AIService:
             
             system_prompt = """Analyze the legal contract for potential risks. Categorize each risk as high, medium, or low severity.
 
-Output the analysis in HTML format with styled sections and bullet points.
+Output the entire analysis in HTML format only. Structure with three sections: High Risks (red theme), Medium Risks (yellow theme), Low Risks (green theme).
 
-Use this structure:
+For each section:
+1. Use a centered pill-style heading: <div style="text-align: center; margin-bottom: 15px;"><span style="background-color: red; color: white; padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 18px; display: inline-block; text-align: center;">High Risks</span></div> (use orange for medium, green for low).
 
-1. For High Risks:
-<div style="background-color: #fee2e2; padding: 15px; border-left: 4px solid #dc2626; border-radius: 8px; margin-bottom: 20px;">
-<h3 style="color: #dc2626; margin-top: 0; margin-bottom: 10px;">High Risks</h3>
-<ul style="margin: 0; padding-left: 20px; list-style-type: disc;">
-<li style="margin-bottom: 8px;">Risk description with <span style="background-color: #dc2626; color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold;">risky term</span></li>
-<li style="margin-bottom: 8px;">Another risk description with <span style="background-color: #dc2626; color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold;">another risky term</span></li>
-</ul>
-</div>
+2. Then a container <div style="background-color: rgba(255,0,0,0.05); padding: 15px; border-radius: 8px; margin-bottom: 25px; border-left: 4px solid red; text-align: left;"> (adjust colors for each section).
 
-2. For Medium Risks:
-<div style="background-color: #fed7aa; padding: 15px; border-left: 4px solid #ea580c; border-radius: 8px; margin-bottom: 20px;">
-<h3 style="color: #ea580c; margin-top: 0; margin-bottom: 10px;">Medium Risks</h3>
-<ul style="margin: 0; padding-left: 20px; list-style-type: disc;">
-<li style="margin-bottom: 8px;">Risk description with <span style="background-color: #ea580c; color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold;">risky term</span></li>
-<li style="margin-bottom: 8px;">Another risk description with <span style="background-color: #ea580c; color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold;">another risky term</span></li>
-</ul>
-</div>
+3. Inside the container, use <ul style="margin: 0; padding-left: 20px; list-style-type: disc;"> for the list of risks.
 
-3. For Low Risks:
-<div style="background-color: #dcfce7; padding: 15px; border-left: 4px solid #16a34a; border-radius: 8px; margin-bottom: 20px;">
-<h3 style="color: #16a34a; margin-top: 0; margin-bottom: 10px;">Low Risks</h3>
-<ul style="margin: 0; padding-left: 20px; list-style-type: disc;">
-<li style="margin-bottom: 8px;">Risk description with <span style="background-color: #16a34a; color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold;">risky term</span></li>
-<li style="margin-bottom: 8px;">Another risk description with <span style="background-color: #16a34a; color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold;">another risky term</span></li>
-</ul>
-</div>
+4. For each risk <li>, identify the specific risky clause or term and highlight ONLY that part using <span style="background-color: red; color: white; padding: 2px 4px; border-radius: 3px; font-weight: bold;">[RISKY CLAUSE]</span> (use red for high, orange for medium, green for low).
 
-IMPORTANT: 
-- Always use bullet points (ul/li) with list-style-type: disc
-- Include multiple bullet points for each risk category
-- Keep the analysis concise and professional."""
+5. Add <div style="height: 20px;"></div> between sections for gap.
+
+6. Do not include any other sections or non-HTML content. Make sure headings are centered and containers have proper styling."""
+
 
             messages = [
                 {"role": "system", "content": system_prompt},
