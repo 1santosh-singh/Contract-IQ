@@ -1,37 +1,13 @@
-# Backend Dockerfile - FastAPI Application
-FROM python:3.11-slim
+# Pull the prebuilt backend image from Docker Hub
+FROM santoshdev10/contract-iq-backend:latest
 
-# Set working directory
-WORKDIR /app
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    curl \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
-
-# Copy requirements first for better caching
-COPY requirements.txt .
-
-# Install Python dependencies
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
-
-# Copy application code
-COPY . .
-
-# Create non-root user
-RUN useradd -m -u 1001 appuser && chown -R appuser:appuser /app
-USER appuser
-
-# Expose port (can be overridden by PORT env var)
+# Expose the port (Render sets $PORT)
 EXPOSE 8000
 
-# Health check
+# Health check (optional, Render can use /api/health)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:${PORT:-8000}/health || exit 1
+  CMD curl -f http://localhost:${PORT:-8000}/api/health || exit 1
 
-# Run uvicorn with PORT environment variable (for Render compatibility)
-CMD uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}
+# Run FastAPI app using uvicorn with dynamic PORT
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${PORT:-8000}"]
 
