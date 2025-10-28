@@ -35,6 +35,7 @@ class Settings(BaseSettings):
     app_name: str = "Contract IQ Backend"
     app_version: str = "0.1.0"
     debug: bool = False
+    port: int = 8000
     
     @validator('debug', pre=True)
     def parse_debug(cls, v):
