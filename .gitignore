@@ -178,3 +178,7 @@ cache/
 
 # Database setup files
 supabase-setup.sql
+
+# Environment files
+.env.production
+*.env.production
