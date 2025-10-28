@@ -175,3 +175,6 @@ uploads/
 storage/
 cache/
 *.md
+
+# Database setup files
+supabase-setup.sql
